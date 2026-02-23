@@ -38,8 +38,8 @@ algoritmos/
 | `01_recursion_tipos.md` | ✅ Listo | 40 ejercicios (8 secciones × 5) |
 | `02_optimizacion_recursiva.md` | ✅ Listo | 25 ejercicios (5 técnicas × 5) |
 | `03_reduccion_complejidad.md` | ✅ Listo | 35 ejercicios (7 técnicas × 5) |
-| `04_grafos.md` | 🔜 Pendiente | — |
-| `05_heap_priority_queue.md` | 🔜 Pendiente | — |
+| `04_grafos.md` | ✅ Listo | 35 ejercicios (7 secciones × 5) |
+| `05_heap_priority_queue.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
 | `06_algoritmos_greedy.md` | 🔜 Pendiente | — |
 | `07_colecciones_java.md` | 🔜 Pendiente | — |
 | `08_sorting_completo.md` | 🔜 Pendiente | — |
@@ -51,7 +51,7 @@ algoritmos/
 | `14_teoria_numeros.md` | 🔜 Pendiente | — |
 | `15_clases_complejidad.md` | 🔜 Pendiente | — |
 
-**Total actual: 100 ejercicios**
+**Total actual: 160 ejercicios**
 
 ---
 
@@ -59,8 +59,8 @@ algoritmos/
 
 | Prioridad | Archivo | Razón |
 |---|---|---|
-| 🔴 Alta | `04_grafos.md` | Base de muchos problemas y certificación Java |
-| 🔴 Alta | `05_heap_priority_queue.md` | Prerequisito para Dijkstra y Heap Sort |
+| 🔴 Alta | `04_grafos.md` | ✅ Listo |
+| 🔴 Alta | `05_heap_priority_queue.md` | ✅ Listo |
 | 🔴 Alta | `06_algoritmos_greedy.md` | Complemento directo de DP |
 | 🔴 Alta | `07_colecciones_java.md` | Crítico para la certificación Java |
 | 🟡 Media | `08_sorting_completo.md` | Completar el panorama de ordenamiento |
