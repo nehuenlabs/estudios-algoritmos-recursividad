@@ -40,18 +40,18 @@ algoritmos/
 | `03_reduccion_complejidad.md` | ✅ Listo | 35 ejercicios (7 técnicas × 5) |
 | `04_grafos.md` | ✅ Listo | 35 ejercicios (7 secciones × 5) |
 | `05_heap_priority_queue.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
-| `06_algoritmos_greedy.md` | 🔜 Pendiente | — |
-| `07_colecciones_java.md` | 🔜 Pendiente | — |
-| `08_sorting_completo.md` | 🔜 Pendiente | — |
-| `09_union_find.md` | 🔜 Pendiente | — |
-| `10_trie.md` | 🔜 Pendiente | — |
-| `11_analisis_amortizado.md` | 🔜 Pendiente | — |
-| `12_kmp_rabin_karp.md` | 🔜 Pendiente | — |
-| `13_bit_manipulation.md` | 🔜 Pendiente | — |
-| `14_teoria_numeros.md` | 🔜 Pendiente | — |
-| `15_clases_complejidad.md` | 🔜 Pendiente | — |
+| `06_algoritmos_greedy.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
+| `07_colecciones_java.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
+| `08_sorting_completo.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
+| `09_union_find.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
+| `10_trie.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
+| `11_analisis_amortizado.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
+| `12_kmp_rabin_karp.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
+| `13_bit_manipulation.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
+| `14_teoria_numeros.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
+| `15_clases_complejidad.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
 
-**Total actual: 160 ejercicios**
+**Total: 360 ejercicios — Repositorio completo ✅**
 
 ---
 
@@ -61,8 +61,8 @@ algoritmos/
 |---|---|---|
 | 🔴 Alta | `04_grafos.md` | ✅ Listo |
 | 🔴 Alta | `05_heap_priority_queue.md` | ✅ Listo |
-| 🔴 Alta | `06_algoritmos_greedy.md` | Complemento directo de DP |
-| 🔴 Alta | `07_colecciones_java.md` | Crítico para la certificación Java |
+| 🔴 Alta | `06_algoritmos_greedy.md` | ✅ Listo |
+| 🔴 Alta | `07_colecciones_java.md` | ✅ Listo |
 | 🟡 Media | `08_sorting_completo.md` | Completar el panorama de ordenamiento |
 | 🟡 Media | `09_union_find.md` | Frecuente en entrevistas |
 | 🟡 Media | `10_trie.md` | Frecuente en problemas de strings |
