@@ -1,7 +1,8 @@
 # Guía de Estudio — Algoritmos y Estructuras de Datos
 
-> Preparación para certificación Java y entrevistas técnicas.
-> Cada ejercicio implementado en **Python · Java · Go · C# · Rust**.
+> Preparación para entrevistas técnicas tipo Hacker Rank.
+
+> NOTA: el presente trabajo no entrega soluciones a los ejercicios planteados, sino que anima a que su resolución se haga usando digramas o bien pseudocódigo, para así adquirir la habilidad de comprenderlos, desarrollarlos y explicar su solución durante una entrevista técnica.
 
 ---
 
