@@ -29,6 +29,69 @@ algoritmos/
 └── 15_clases_complejidad.md         ← P, NP, NP-completo
 ```
 
+## Distribución de Contenidos
+
+```mermaid
+flowchart TD
+    subgraph C1["1 — Fundamentos (01–15)"]
+        A["Recursión y DP (01·02·03)"]
+        B["Grafos y caminos (04)"]
+        C["Estructuras de datos (05·09·10·11)"]
+        D["Algoritmos clásicos (06·07·08·12·13·14·15)"]
+    end
+
+    subgraph C2["2 — Composición (16)"]
+        E["Programación funcional: map · filter · fold · streams"]
+    end
+
+    subgraph C3["3 — Sistemas reales (17)"]
+        F["Efectos · ROP · async Pipelines · Arquitectura"]
+    end
+
+    subgraph C4["4 — Escala y hardware (18–19)"]
+        G["Estructuras probabilísticas Bloom · HLL · CMS · MinHash"]
+        H["Modelo de memoria Caché · Localidad · Disco"]
+    end
+
+    C1 --> C2 --> C3 --> C4
+
+```
+
+---
+
+```mermaid
+mindmap
+  root((Algoritmos y Sistemas))
+    Fundamentos
+      Recursión 01·02
+      Reducción 03
+      Grafos 04
+      Heap 05
+      Greedy 06
+      Sorting 08
+      Union-Find 09
+      Trie 10
+      Amortizado 11
+      KMP 12
+      Bits 13
+      Números 14
+      Complejidad 15
+    Composición
+      PF funcional 16
+      map·filter·fold
+      Streams lazy
+    Sistemas reales
+      Result·ROP 17
+      async·await
+      Pipelines
+      Arquitectura
+    Escala
+      Bloom Filter 18
+      HyperLogLog
+      Count-Min
+      Caché·Memoria 19
+```
+
 ---
 
 ## Progreso
@@ -120,3 +183,7 @@ Cada ejercicio tiene el siguiente formato:
 | `O(n²)` | Cuadrático | Doble bucle anidado |
 | `O(2^n)` | Exponencial | Subconjuntos sin memo |
 | `O(n!)` | Factorial | Permutaciones brutas |
+
+
+---
+
