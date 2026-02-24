@@ -1613,10 +1613,10 @@ flowchart TD
 ```mermaid
 flowchart LR
     subgraph E0["Inicial"]
-        N0["0"]
-        N1["1"]
-        N2["2"]
-        N3["3"]
+        N0["0"] 
+        N1["1"] 
+        N2["2"] 
+        N3["3"] 
         N4["4"]
     end
     subgraph E1["union(0,1)\nunion(2,3)"]
@@ -1884,6 +1884,802 @@ Subgrafos:
 | Cap. 10 — Trie | 26 |
 | Cap. 12 — KMP / Rabin-Karp | 27 |
 | Cap. 13 — Bit Manipulation | 28 |
+| Cap. 16 — Programación Funcional | 29, 30, 31, 32, 33, 34, 35 |
 
+---
+---
 
+## Plantillas de Programación Funcional — Cap. 16
+
+> Estos patrones complementan las plantillas 1–28.
+> Muestran cómo los mismos algoritmos se ven bajo la lente funcional.
+
+---
+
+## 29 · Pipeline map / filter / fold
+
+> **Patrón:** transformar datos como una cadena de operaciones puras.
+> Cada función toma un valor y retorna uno nuevo — sin efectos secundarios.
+> **Equivalente imperativo:** bucles `for` anidados
+
+### Plantilla
+
+```mermaid
+flowchart LR
+    INPUT["Colección\noriginal"]
+
+    subgraph PIPE["Pipeline funcional"]
+        F["filter\nPRED(x) → bool"]
+        M["map\nf(x) → y"]
+        R["fold/reduce\nacc + x → acc"]
+    end
+
+    OUTPUT["Resultado\nfinal"]
+
+    INPUT --> F --> M --> R --> OUTPUT
+
+    style INPUT fill:#87CEEB
+    style F fill:#FFFACD
+    style M fill:#FFFACD
+    style R fill:#D3D3D3
+    style OUTPUT fill:#90EE90
+```
+
+### Ejemplo: suma de cuadrados de pares en [1..10]
+
+```mermaid
+flowchart LR
+    A["[1,2,3,4,5\n6,7,8,9,10]"]
+    B["filter par\n[2,4,6,8,10]"]
+    C["map cuadrado\n[4,16,36,64,100]"]
+    D["fold suma\n220"]
+
+    A --> B --> C --> D
+
+    style A fill:#87CEEB
+    style B fill:#FFFACD
+    style C fill:#FFFACD
+    style D fill:#90EE90
+```
+
+---
+
+## 30 · Recursión de Cola — Acumulador explícito
+
+> **Patrón:** el estado viaja como parámetro `acc` hacia abajo.
+> No hay operación pendiente al hacer la llamada → `O(1)` stack con TCO.
+> **Diferencia con Plantilla 5:** aquí el acumulador puede ser complejo (lista, mapa, árbol)
+
+### Plantilla
+
+```mermaid
+flowchart LR
+    A["FUNCION(entrada, acc=INICIO)"]
+    B{"entrada\nvacia?"}
+    C["Retorna acc\n(resultado final)"]
+    D["nuevo_acc =\nCOMBINA(acc, cabeza)"]
+    E["FUNCION(cola, nuevo_acc)"]
+
+    A --> B
+    B -- "Sí" --> C
+    B -- "No" --> D --> E
+
+    style C fill:#90EE90
+    style B fill:#87CEEB
+    style E fill:#87CEEB
+    style D fill:#D3D3D3
+```
+
+### Ejemplo: revertir lista [1,2,3,4] con acumulador
+
+```mermaid
+flowchart LR
+    S1["rev([1,2,3,4], [])"]
+    S2["rev([2,3,4], [1])"]
+    S3["rev([3,4], [2,1])"]
+    S4["rev([4], [3,2,1])"]
+    S5["rev([], [4,3,2,1])"]
+    S6["Retorna [4,3,2,1] ✓"]
+
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+
+    style S1 fill:#87CEEB
+    style S2 fill:#87CEEB
+    style S3 fill:#87CEEB
+    style S4 fill:#87CEEB
+    style S5 fill:#87CEEB
+    style S6 fill:#90EE90
+```
+
+---
+
+## 31 · DP como scanl — Bottom-Up funcional
+
+> **Patrón:** `scanl` acumula estado y guarda todos los intermedios.
+> Es el equivalente funcional de llenar la tabla DP de izquierda a derecha.
+> **Resultado:** una lista de todos los estados intermedios, no solo el final
+
+### Plantilla
+
+```mermaid
+flowchart LR
+    subgraph SCAN["scanl f inicio lista"]
+        ACC0["acc₀\n(inicio)"]
+        ACC1["acc₁\n= f(acc₀, x₁)"]
+        ACC2["acc₂\n= f(acc₁, x₂)"]
+        ACCN["accₙ\n= f(accₙ₋₁, xₙ)"]
+        ACC0 --> ACC1 --> ACC2 --> ACCN
+    end
+
+    OUT["[acc₀, acc₁, acc₂, ..., accₙ]\nTodos los estados DP"]
+    SCAN --> Out
+
+    style ACC0 fill:#90EE90
+    style ACCN fill:#90EE90
+    style ACC1 fill:#87CEEB
+    style ACC2 fill:#87CEEB
+```
+
+### Ejemplo: prefix sums de [2,4,1,3,5] con scanl
+
+```mermaid
+flowchart LR
+    S0["0\n(inicio)"]
+    S1["0+2=2"]
+    S2["2+4=6"]
+    S3["6+1=7"]
+    S4["7+3=10"]
+    S5["10+5=15"]
+
+    OUT["[0,2,6,7,10,15]\nTabla prefix sums ✓"]
+
+    S0 --> S1 --> S2 --> S3 --> S4 --> S5 --> OUT
+
+    style S0 fill:#90EE90
+    style OUT fill:#90EE90
+    style S1 fill:#87CEEB
+    style S2 fill:#87CEEB
+    style S3 fill:#87CEEB
+    style S4 fill:#87CEEB
+    style S5 fill:#87CEEB
+```
+
+---
+
+## 32 · Memoización Lazy — @lru_cache
+
+> **Patrón:** función recursiva + caché automático.
+> La función no sabe que está siendo cacheada — es pura desde adentro.
+> **Diferencia con Plantilla 6:** aquí el caché es externo (decorador), no explícito
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    CALL["FUNCION(PARAM)"]
+    CACHE{"PARAM\nen caché?"}
+    HIT["Retorna cache[PARAM]\n⚡ O(1)"]
+    BASE{"CASO_BASE?"}
+    BVAL["Retorna VALOR_BASE"]
+    REC["Llamadas recursivas\nFUNCION(sub-params)"]
+    COMBINE["Combina resultados"]
+    STORE["cache[PARAM] = resultado"]
+    RET["Retorna resultado"]
+
+    CALL --> CACHE
+    CACHE -- "Sí" --> HIT
+    CACHE -- "No" --> BASE
+    BASE -- "Sí" --> BVAL
+    BASE -- "No" --> REC --> COMBINE --> STORE --> RET
+
+    style HIT fill:#FFD580
+    style BVAL fill:#90EE90
+    style CACHE fill:#87CEEB
+    style BASE fill:#87CEEB
+    style STORE fill:#D3D3D3
+```
+
+### Ejemplo: LCS("ABCB", "BDCAB") con @lru_cache
+
+```mermaid
+flowchart TD
+    ROOT["lcs(0,0)"]
+    A["lcs(1,1)"]
+    B["lcs(1,2)"]
+    C["lcs(2,2)"]
+    D["lcs(2,3)"]
+    HIT1["lcs(2,2) memo hit ⚡"]
+    HIT2["lcs(1,2) memo hit ⚡"]
+    BASE["lcs(4,x) o lcs(x,5) → 0"]
+
+    ROOT --> A & B
+    A --> C & D
+    B --> HIT1
+    C --> BASE
+    D --> HIT2
+
+    style BASE fill:#90EE90
+    style HIT1 fill:#FFD580
+    style HIT2 fill:#FFD580
+    style ROOT fill:#87CEEB
+    style A fill:#87CEEB
+    style B fill:#87CEEB
+```
+
+---
+
+## 33 · State Passing — Estado explícito en grafos
+
+> **Patrón:** el estado mutable (visitados, distancias) se pasa y retorna
+> explícitamente en lugar de modificarse in-place.
+> **Trade-off:** más verboso pero completamente puro — sin efectos ocultos
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    A["ALGO(grafo, nodo, ESTADO)"]
+    B{"nodo en\nESTADO?"}
+    C["Retorna\n(resultado_vacio, ESTADO)"]
+    D["ESTADO2 = ESTADO + nodo"]
+    E["procesar nodo"]
+    F["Para cada VECINO"]
+    G["ALGO(grafo, VECINO, ESTADO_actual)"]
+    H["acumular resultado\nactualizar ESTADO_actual"]
+    I["Retorna (resultado, ESTADO_final)"]
+
+    A --> B
+    B -- "Sí" --> C
+    B -- "No" --> D --> E --> F --> G --> H --> F
+    F -- "fin vecinos" --> I
+
+    style C fill:#90EE90
+    style I fill:#90EE90
+    style B fill:#87CEEB
+    style G fill:#87CEEB
+    style D fill:#D3D3D3
+```
+
+### Ejemplo: DFS funcional en grafo A-B-C-D
+
+```mermaid
+flowchart TD
+    S1["dfs(A, visitados={})"]
+    S2["dfs(B, visitados={A})"]
+    S3["dfs(D, visitados={A,B})"]
+    S4["dfs(D, visitados={A,B,D})\nD ya visitado → retorna"]
+    S5["dfs(C, visitados={A,B,D})"]
+    R1["([D], {A,B,D})"]
+    R2["([B,D], {A,B,D})"]
+    R3["([C], {A,B,C,D})"]
+    FINAL["([A,B,D,C], {A,B,C,D}) ✓"]
+
+    S1 --> S2 --> S3 --> R1 --> R2
+    S2 --> S4
+    S1 --> S5 --> R3
+    R2 --> FINAL
+    R3 --> FINAL
+
+    style S4 fill:#FFB3B3
+    style FINAL fill:#90EE90
+    style R1 fill:#D3D3D3
+    style R2 fill:#D3D3D3
+    style R3 fill:#D3D3D3
+```
+
+---
+
+## 34 · Estructura Persistente — Árbol compartido
+
+> **Patrón:** al "modificar" una estructura, se crea una nueva versión
+> que comparte los nodos no afectados con la versión anterior.
+> **Costo:** `O(log n)` nodos nuevos por operación vs `O(1)` mutable
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    subgraph V1["Versión 1 (original)"]
+        R1["raíz_v1"]
+        A1["A"]
+        B1["B"]
+        C1["C (modificar este)"]
+        D1["D"]
+        R1 --> A1 & B1
+        A1 --> C1 & D1
+    end
+
+    subgraph V2["Versión 2 (nueva)"]
+        R2["raíz_v2 (nuevo)"]
+        A2["A' (nuevo)"]
+        C2["C' (nuevo)"]
+    end
+
+    subgraph SHARED["Nodos compartidos"]
+        B1
+        D1
+    end
+
+    R2 --> A2 & B1
+    A2 --> C2 & D1
+
+    style R2 fill:#87CEEB
+    style A2 fill:#87CEEB
+    style C2 fill:#87CEEB
+    style R1 fill:#DDA0DD
+    style A1 fill:#DDA0DD
+    style C1 fill:#DDA0DD
+    style B1 fill:#90EE90
+    style D1 fill:#90EE90
+```
+
+> Verde = nodos compartidos entre v1 y v2. Solo el camino raíz→C se recrea.
+
+### Ejemplo: insertar 7 en BST persistente [5,3,8]
+
+```mermaid
+flowchart LR
+    subgraph BST1["BST v1"]
+        R1b["5"]
+        L1["3"]
+        RR1["8"]
+        R1b --> L1 & RR1
+    end
+
+    subgraph BST2["BST v2 — insertar 7"]
+        R2b["5' (nuevo)"]
+        RR2["8' (nuevo)"]
+        L7["7 (nuevo)"]
+        R2b --> L1
+        R2b --> RR2
+        RR2 --> L7
+    end
+
+    NOTE["3 nodos compartidos: nodo 3\n3 nodos nuevos: 5' 8' 7"]
+
+    BST1 --> BST2
+    BST2 --> NOTE
+
+    style R2b fill:#87CEEB
+    style RR2 fill:#87CEEB
+    style L7 fill:#87CEEB
+    style L1 fill:#90EE90
+    style NOTE fill:#D3D3D3
+```
+
+---
+
+## 35 · Stream Lazy Infinito
+
+> **Patrón:** secuencia que genera elementos bajo demanda, sin límite predefinido.
+> Solo se calcula lo que el consumidor realmente pide.
+> **Contraste:** un arreglo materializa todo de antemano
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    GEN["GENERADOR\nestado_inicial"]
+    REQ{"¿Consumidor\npide elemento?"}
+    DONE["Fin del consumo"]
+    CALC["Calcular siguiente\ndesde estado_actual"]
+    EMIT["Emitir elemento\nal consumidor"]
+    UPD["Actualizar\nestado_interno"]
+
+    GEN --> REQ
+    REQ -- "No" --> DONE
+    REQ -- "Sí" --> CALC --> EMIT --> UPD --> REQ
+
+    style DONE fill:#90EE90
+    style GEN fill:#87CEEB
+    style REQ fill:#87CEEB
+    style EMIT fill:#D3D3D3
+```
+
+### Ejemplo: stream de Fibonacci — consumir solo los necesarios
+
+```mermaid
+flowchart LR
+    subgraph GEN2["Generador fib(a=0, b=1)"]
+        G1["yield 0\na=1,b=1"]
+        G2["yield 1\na=1,b=2"]
+        G3["yield 1\na=2,b=3"]
+        G4["yield 2\na=3,b=5"]
+        G5["yield 3\na=5,b=8"]
+        GN["...infinito"]
+        G1 --> G2 --> G3 --> G4 --> G5 --> GN
+    end
+
+    subgraph CONSUMER["Consumidor: tomar hasta >10"]
+        C1["recibe 0 ✓"]
+        C2["recibe 1 ✓"]
+        C3["recibe 1 ✓"]
+        C4["recibe 2 ✓"]
+        C5["recibe 3 ✓"]
+        C6["recibe 5 ✓"]
+        C7["recibe 8 ✓"]
+        C8["recibe 13 > 10\nSTOP"]
+    end
+
+    G1 --> C1
+    G2 --> C2
+    G3 --> C3
+    G4 --> C4
+    G5 --> C5
+    GN --> C6 --> C7 --> C8
+
+    style C8 fill:#90EE90
+    style GN fill:#87CEEB
+```
+
+---
+
+## Guía de elección: ¿PF o imperativo?
+
+```mermaid
+flowchart TD
+    START["¿Qué tipo de algoritmo es?"]
+    A{"¿Transforma\ndatos sin estado\npersistente?"}
+    B["✅ PF natural\nmap/filter/fold/compose"]
+    C{"¿Necesita mutar\nestructuras para\neficiencia O(1)?"}
+    D["⚠️ PF posible\npero con trade-off\nde espacio O(log n)"]
+    E["❌ Imperativo mejor\nUnion-Find, Heap,\nSorting in-place"]
+    F{"¿El estado es\npequeño y puro?"}
+    G["✅ State passing\nretornar nuevo estado"]
+    H["⚠️ Mónada State\nHaskell / Scala"]
+
+    START --> A
+    A -- "Sí" --> B
+    A -- "No" --> C
+    C -- "No" --> D
+    C -- "Sí" --> E
+    D --> F
+    F -- "Sí" --> G
+    F -- "No" --> H
+
+    style B fill:#90EE90
+    style E fill:#FFB3B3
+    style D fill:#FFD580
+    style G fill:#90EE90
+    style H fill:#FFD580
+```
+
+| Cap. 17 — Efectos, Pipelines y Arquitectura | 36, 37, 38, 39, 40 |
+
+---
+---
+
+## Plantillas de Efectos y Pipelines — Cap. 17
+
+---
+
+## 36 · Result / Option — tipo que no miente
+
+> **Patrón:** el éxito y el fallo son valores del tipo, no excepciones ocultas.
+> El llamador no puede ignorar el error — el compilador o el tipo lo obliga.
+
+### Plantilla Result
+
+```mermaid
+flowchart TD
+    F["FUNCION(input)"]
+    B{"¿Operación\nexitosa?"}
+    OK["Retorna Ok(valor)"]
+    ERR["Retorna Err(motivo)"]
+    CALLER["Llamador hace\npattern matching"]
+    HANDLE_OK["Usa valor"]
+    HANDLE_ERR["Maneja error"]
+
+    F --> B
+    B -- "Sí" --> OK --> CALLER
+    B -- "No" --> ERR --> CALLER
+    CALLER --> HANDLE_OK
+    CALLER --> HANDLE_ERR
+
+    style OK fill:#90EE90
+    style ERR fill:#FFB3B3
+    style B fill:#87CEEB
+    style CALLER fill:#D3D3D3
+```
+
+### Ejemplo: buscar() sin -1 ni None
+
+```mermaid
+flowchart LR
+    A["buscar([1,2,3], 5)"]
+    B{"5 en lista?"}
+    OK["Ok(índice=1)"]
+    ERR["Err('5 no encontrado')"]
+    MATCH["match resultado:"]
+    USE["print(f'en índice')"]
+    FIX["print('no existe')"]
+
+    A --> B
+    B -- "Sí" --> OK --> MATCH
+    B -- "No" --> ERR --> MATCH
+    MATCH --> USE
+    MATCH --> FIX
+
+    style OK fill:#90EE90
+    style ERR fill:#FFB3B3
+    style MATCH fill:#D3D3D3
+```
+
+---
+
+## 37 · Railway-Oriented Programming
+
+> **Patrón:** funciones falibles encadenadas en dos rieles.
+> El primer error cortocircuita el resto sin `if error: return error` repetido.
+
+### Plantilla
+
+```mermaid
+flowchart LR
+    IN["Input"]
+
+    subgraph HAPPY["Riel feliz (Ok)"]
+        F1["ETAPA_1\nOk → Ok"]
+        F2["ETAPA_2\nOk → Ok"]
+        F3["ETAPA_3\nOk → Ok"]
+        OUT["Ok(resultado) ✓"]
+        F1 --> F2 --> F3 --> OUT
+    end
+
+    subgraph ERROR["Riel error (Err)"]
+        E1["Err se propaga\nsin ejecutar etapas"]
+        EOUT["Err(motivo) ✗"]
+        E1 --> EOUT
+    end
+
+    IN --> F1
+    F1 -- "si falla" --> E1
+    F2 -- "si falla" --> E1
+    F3 -- "si falla" --> E1
+
+    style OUT fill:#90EE90
+    style EOUT fill:#FFB3B3
+    style E1 fill:#FFB3B3
+    style F1 fill:#FFFACD
+    style F2 fill:#FFFACD
+    style F3 fill:#FFFACD
+```
+
+### Ejemplo: pipeline validar → calcular → guardar
+
+```mermaid
+flowchart LR
+    RAW["JSON crudo"]
+    P["parsear()\nOk o Err"]
+    V["validar()\nOk o Err"]
+    C["calcular()\nOk o Err"]
+    G["guardar()\nOk o Err"]
+    OK["Ok(guardado) ✓"]
+    ERR_P["Err('JSON inválido')"]
+    ERR_V["Err('campos faltantes')"]
+    ERR_G["Err('BD no disponible')"]
+
+    RAW --> P
+    P -- "Ok" --> V
+    P -- "Err" --> ERR_P
+    V -- "Ok" --> C
+    V -- "Err" --> ERR_V
+    C -- "Ok" --> G
+    G -- "Ok" --> OK
+    G -- "Err" --> ERR_G
+
+    style OK fill:#90EE90
+    style ERR_P fill:#FFB3B3
+    style ERR_V fill:#FFB3B3
+    style ERR_G fill:#FFB3B3
+    style P fill:#FFFACD
+    style V fill:#FFFACD
+    style C fill:#FFFACD
+    style G fill:#FFFACD
+```
+
+---
+
+## 38 · async + Result — efectos asíncronos con manejo de errores
+
+> **Patrón:** combina la asincronía (`await`) con el manejo explícito de errores (`Result`).
+> Las operaciones lentas (BD, APIs) son async; el procesamiento puro es síncrono.
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    START["async pipeline(input)"]
+    FETCH["await FUENTE_DATOS()\nResult async"]
+    CHECK1{"Ok?"}
+    ERR1["Retorna Err\n(fallo fetch)"]
+    PURE["ALGORITMO_PURO(datos)\nSíncrono — Cap.01-15"]
+    SAVE["await GUARDAR(resultado)\nResult async"]
+    CHECK2{"Ok?"}
+    ERR2["Retorna Err\n(fallo guardar)"]
+    DONE["Retorna Ok(resultado) ✓"]
+
+    START --> FETCH --> CHECK1
+    CHECK1 -- "No" --> ERR1
+    CHECK1 -- "Sí" --> PURE --> SAVE --> CHECK2
+    CHECK2 -- "No" --> ERR2
+    CHECK2 -- "Sí" --> DONE
+
+    style DONE fill:#90EE90
+    style ERR1 fill:#FFB3B3
+    style ERR2 fill:#FFB3B3
+    style CHECK1 fill:#87CEEB
+    style CHECK2 fill:#87CEEB
+    style PURE fill:#D3D3D3
+```
+
+### Ejemplo: Dijkstra como servicio async
+
+```mermaid
+flowchart LR
+    REQ["POST /ruta\n{grafo_id, origen, destino}"]
+    CACHE{"En caché LRU?"}
+    LOAD["await cargar_grafo(id)\n2-50ms"]
+    DIJKSTRA["dijkstra(grafo, origen, destino)\nO((V+E)log V) — síncrono puro"]
+    RESP["Ok({camino, costo}) ✓"]
+    MISS["cache miss — cargar"]
+    TIMEOUT["Err('timeout 5s')"]
+    NPATH["Err('no hay camino')"]
+
+    REQ --> CACHE
+    CACHE -- "Sí" --> DIJKSTRA
+    CACHE -- "No" --> MISS --> LOAD
+    LOAD -- "timeout" --> TIMEOUT
+    LOAD -- "Ok" --> DIJKSTRA
+    DIJKSTRA -- "alcanzable" --> RESP
+    DIJKSTRA -- "inalcanzable" --> NPATH
+
+    style RESP fill:#90EE90
+    style TIMEOUT fill:#FFB3B3
+    style NPATH fill:#FFB3B3
+    style CACHE fill:#FFD580
+    style DIJKSTRA fill:#D3D3D3
+```
+
+---
+
+## 39 · Fan-out / Fan-in — múltiples fuentes en paralelo
+
+> **Patrón:** distribuir trabajo a `n` fuentes simultáneamente y combinar
+> los resultados cuando llegan. Reduce latencia de O(suma) a O(máximo).
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    INPUT["Input / Request"]
+
+    subgraph FANOUT["Fan-out (paralelo)"]
+        F1["await FUENTE_1()"]
+        F2["await FUENTE_2()"]
+        F3["await FUENTE_3()"]
+    end
+
+    GATHER["await gather(F1, F2, F3)"]
+
+    subgraph FANIN["Fan-in (combinar)"]
+        CHECK{"¿Todos Ok?"}
+        COMBINE["combinar(r1, r2, r3)"]
+        PARTIAL["degradar con\nresultados parciales"]
+    end
+
+    OUTPUT["Resultado final"]
+
+    INPUT --> F1 & F2 & F3
+    F1 & F2 & F3 --> GATHER --> CHECK
+    CHECK -- "Sí" --> COMBINE --> OUTPUT
+    CHECK -- "No (parcial)" --> PARTIAL --> OUTPUT
+
+    style OUTPUT fill:#90EE90
+    style COMBINE fill:#D3D3D3
+    style PARTIAL fill:#FFD580
+    style CHECK fill:#87CEEB
+    style F1 fill:#FFFACD
+    style F2 fill:#FFFACD
+    style F3 fill:#FFFACD
+```
+
+### Ejemplo: grafo distribuido en 3 servicios
+
+```mermaid
+flowchart LR
+    REQ["grafo_id=42"]
+
+    subgraph PAR["Paralelo — ~50ms total"]
+        SVC_A["await get_nodos(42)\nServicio A — 40ms"]
+        SVC_B["await get_aristas(42)\nServicio B — 50ms"]
+        SVC_C["await get_meta(42)\nServicio C — 20ms"]
+    end
+
+    MERGE["combinar(nodos, aristas, meta)"]
+    GRAFO["Grafo completo ✓"]
+    DEGRADED["Grafo sin aristas\n(B falló) ⚠️"]
+
+    REQ --> SVC_A & SVC_B & SVC_C
+    SVC_A --> MERGE
+    SVC_B -- "Ok" --> MERGE
+    SVC_B -- "Err" --> DEGRADED
+    SVC_C --> MERGE
+    MERGE --> GRAFO
+
+    style GRAFO fill:#90EE90
+    style DEGRADED fill:#FFD580
+    style MERGE fill:#D3D3D3
+```
+
+---
+
+## 40 · Arquitectura en capas — el mapa del sistema
+
+> **Patrón:** separa los algoritmos puros de los efectos.
+> El centro es testeable sin BD ni mocks. Los efectos viven solo en el borde.
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    subgraph BORDE["Borde — Efectos (Cap.17)"]
+        API["API / Entrada"]
+        DB["BD / Servicios"]
+        CACHE["Caché LRU"]
+    end
+
+    subgraph ORQUESTA["Orquestación (Cap.17 §4-6)"]
+        ASYNC["async/await\nResult/ROP"]
+        FANOUT["Fan-out/Fan-in\nCircuit Breaker"]
+    end
+
+    subgraph NUCLEO["Núcleo puro (Cap.01-16)"]
+        ALG1["Algoritmos de grafos\nCap.04"]
+        ALG2["Estructuras de datos\nCap.05,09,10"]
+        ALG3["DP, Greedy\nCap.02,06"]
+    end
+
+    API --> ASYNC
+    ASYNC --> FANOUT
+    FANOUT --> ALG1 & ALG2 & ALG3
+    ALG1 & ALG2 & ALG3 --> FANOUT
+    FANOUT --> DB & CACHE
+
+    style NUCLEO fill:#90EE90
+    style ORQUESTA fill:#FFFACD
+    style BORDE fill:#87CEEB
+```
+
+### Ejemplo: solicitud completa de análisis de grafo
+
+```mermaid
+flowchart TD
+    HTTP["POST /analizar\n{grafo_id: 42}"]
+
+    subgraph EFF["Efectos"]
+        FETCH["await cargar_grafo(42)"]
+        CACHEQ{"En caché?"}
+        SAVE["await guardar(resultado)"]
+    end
+
+    subgraph PURE["Núcleo puro"]
+        BUILD["construir_grafo(datos)"]
+        CYCLES["detectar_ciclos(grafo)"]
+        DIJK["dijkstra(grafo, todos)"]
+        RANK["calcular_centralidad()"]
+    end
+
+    RESULT["Ok(Analisis completo) ✓"]
+
+    HTTP --> CACHEQ
+    CACHEQ -- "No" --> FETCH --> BUILD
+    CACHEQ -- "Sí" --> RESULT
+    BUILD --> CYCLES --> DIJK --> RANK
+    RANK --> SAVE --> RESULT
+
+    style RESULT fill:#90EE90
+    style PURE fill:#D3D3D3
+    style CACHEQ fill:#FFD580
+```
 

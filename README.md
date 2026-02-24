@@ -51,7 +51,11 @@ algoritmos/
 | `14_teoria_numeros.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
 | `15_clases_complejidad.md` | ✅ Listo | 25 ejercicios (5 secciones × 5) |
 
-**Total: 360 ejercicios — Repositorio completo ✅**
+| `16_programacion_funcional.md` | ✅ Listo | 35 ejercicios (7 secciones × 5) |
+
+| `17_efectos_pipelines_arquitectura.md` | ✅ Listo | 35 ejercicios (7 secciones × 5) |
+
+**Total: 430 ejercicios ✅**
 
 ---
 
