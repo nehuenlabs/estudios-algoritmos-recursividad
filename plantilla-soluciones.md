@@ -1613,7 +1613,11 @@ flowchart TD
 ```mermaid
 flowchart LR
     subgraph E0["Inicial"]
-        N0["0"] N1["1"] N2["2"] N3["3"] N4["4"]
+        N0["0"]
+        N1["1"]
+        N2["2"]
+        N3["3"]
+        N4["4"]
     end
     subgraph E1["union(0,1)\nunion(2,3)"]
         G1["0→1\n2→3"]
