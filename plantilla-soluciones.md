@@ -2683,3 +2683,329 @@ flowchart TD
     style CACHEQ fill:#FFD580
 ```
 
+| Cap. 18 — Estructuras Probabilísticas | 41, 42, 43 |
+| Cap. 19 — Modelo de Memoria y Caché | 44, 45, 46 |
+
+---
+---
+
+## Plantillas de Estructuras Probabilísticas — Cap. 18
+
+---
+
+## 41 · Bloom Filter — insertar y consultar
+
+> **Patrón:** `k` funciones de hash mapean cada elemento a `k` bits.
+> Insertar = poner bits en 1. Consultar = verificar si los `k` bits son 1.
+> Sin falsos negativos. Posibles falsos positivos controlados por `p`.
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    subgraph ADD["add(elemento)"]
+        A1["Calcular k posiciones\nhash_1..k(elemento) mod m"]
+        A2["Poner bit en 1\npara cada posición"]
+        A1 --> A2
+    end
+
+    subgraph QUERY["contains(elemento)"]
+        Q1["Calcular k posiciones\nhash_1..k(elemento) mod m"]
+        Q2{"¿Todos los\nk bits son 1?"}
+        Q3["Retorna False\n(definitivamente no está)"]
+        Q4["Retorna True\n(probablemente está)"]
+        Q1 --> Q2
+        Q2 -- "No" --> Q3
+        Q2 -- "Sí" --> Q4
+    end
+
+    style Q3 fill:#90EE90
+    style Q4 fill:#FFD580
+    style Q2 fill:#87CEEB
+    style A2 fill:#D3D3D3
+```
+
+### Ejemplo: Bloom Filter m=10 bits, k=3
+
+```mermaid
+flowchart LR
+    subgraph BITS["Arreglo de 10 bits"]
+        B0["0"]
+        B1["1"]
+        B2["0"]
+        B3["1"]
+        B4["0"]
+        B5["0"]
+        B6["1"]
+        B7["0"]
+        B8["0"]
+        B9["0"]
+    end
+
+    subgraph OP["add('hola'): hash1=1, hash2=3, hash3=6"]
+        H["Bits 1,3,6 → 1"]
+    end
+
+    subgraph CHK["contains('mundo'): hash1=1, hash2=5, hash3=6"]
+        C["Bit 5 = 0 → False ✓ (no está)"]
+    end
+
+    OP --> BITS
+    BITS --> CHK
+
+    style B1 fill:#87CEEB
+    style B3 fill:#87CEEB
+    style B6 fill:#87CEEB
+    style C fill:#90EE90
+    style H fill:#D3D3D3
+```
+
+---
+
+## 42 · HyperLogLog — contar únicos
+
+> **Patrón:** el máximo de ceros iniciales en el hash de los elementos
+> estima `log2(n_únicos)`. `m` buckets reducen la varianza.
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    subgraph ADD2["add(elemento)"]
+        H1["h = hash(elemento)"]
+        H2["bucket = primeros b bits de h"]
+        H3["ceros = ceros iniciales del resto"]
+        H4["registros[bucket] = max(registros[bucket], ceros)"]
+        H1 --> H2 --> H3 --> H4
+    end
+
+    subgraph COUNT["count()"]
+        C1["Z = Σ 2^(-registros[i])"]
+        C2["estimacion = α * m² / Z"]
+        C3["Aplicar correcciones\npequeño/grande rango"]
+        C4["Retorna estimacion ±2%"]
+        C1 --> C2 --> C3 --> C4
+    end
+
+    style C4 fill:#90EE90
+    style H4 fill:#D3D3D3
+    style C2 fill:#87CEEB
+```
+
+### Ejemplo: estimación con m=4 buckets
+
+```mermaid
+flowchart LR
+    subgraph REGS["Registros tras insertar 1000 elementos"]
+        R0["bucket 0\nmax_ceros = 8"]
+        R1["bucket 1\nmax_ceros = 7"]
+        R2["bucket 2\nmax_ceros = 9"]
+        R3["bucket 3\nmax_ceros = 8"]
+    end
+
+    subgraph CALC["Cálculo"]
+        Z["Z = 2^-8 + 2^-7 + 2^-9 + 2^-8"]
+        EST["estimacion = 0.697 * 16 / Z ≈ 980"]
+        ERR["Error: 2% — dentro del ±1.04/√4 = ±52%\n(m=4 es solo ilustrativo — en práctica m≥64)"]
+        Z --> EST --> ERR
+    end
+
+    REGS --> CALC
+
+    style EST fill:#90EE90
+    style ERR fill:#FFD580
+```
+
+---
+
+## 43 · Count-Min Sketch — contar frecuencias
+
+> **Patrón:** matriz `d × w` de contadores. Insertar incrementa
+> `d` posiciones. Consultar retorna el **mínimo** de las `d` posiciones.
+> Nunca subestima. Sobreestimación acotada por `ε * N`.
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    subgraph ADD3["add(elemento, count=1)"]
+        A3["Para cada fila i de 0..d-1:"]
+        A4["CMS[i][hash_i(elem) % w] += count"]
+        A3 --> A4
+    end
+
+    subgraph QUERY3["query(elemento)"]
+        Q5["Para cada fila i de 0..d-1:"]
+        Q6["Lee CMS[i][hash_i(elem) % w]"]
+        Q7["Retorna min de los d valores\n(mínimo = mejor estimación)"]
+        Q5 --> Q6 --> Q7
+    end
+
+    style Q7 fill:#90EE90
+    style A4 fill:#D3D3D3
+    style Q6 fill:#87CEEB
+```
+
+### Ejemplo: CMS d=3 filas, w=5 columnas
+
+```mermaid
+flowchart LR
+    subgraph MATRIX["Matriz CMS (tras insertar 'gato' x3, 'perro' x5)"]
+        F0["Fila 0: [0, 3, 5, 0, 0]"]
+        F1["Fila 1: [5, 0, 0, 3, 0]"]
+        F2["Fila 2: [0, 0, 3, 5, 0]"]
+    end
+
+    subgraph Q8["query('gato') — hash posiciones: 1, 3, 2"]
+        V1["Fila 0 pos 1: 3"]
+        V2["Fila 1 pos 3: 3"]
+        V3["Fila 2 pos 2: 3"]
+        MINV["min(3,3,3) = 3 ✓"]
+        V1 & V2 & V3 --> MINV
+    end
+
+    MATRIX --> Q8
+
+    style MINV fill:#90EE90
+    style F0 fill:#FFFACD
+    style F1 fill:#FFFACD
+    style F2 fill:#FFFACD
+```
+
+---
+
+## Plantillas de Caché y Memoria — Cap. 19
+
+---
+
+## 44 · Jerarquía de memoria — costo real de accesos
+
+> **Patrón:** no todos los accesos cuestan igual.
+> El costo determina si un algoritmo es rápido o lento en práctica.
+
+### Plantilla de decisión
+
+```mermaid
+flowchart TD
+    ACCESS["Acceder a dato X"]
+    L1{"¿X en L1\ncaché?"}
+    L2{"¿X en L2\ncaché?"}
+    L3{"¿X en L3\ncaché?"}
+    RAM{"¿X en RAM?"}
+    DISK["Acceso a disco\n~100,000 ns"]
+    HIT_L1["~1 ns ✅"]
+    HIT_L2["~4 ns ✅"]
+    HIT_L3["~20 ns ⚠️"]
+    HIT_RAM["~100 ns ⚠️"]
+
+    ACCESS --> L1
+    L1 -- "Sí" --> HIT_L1
+    L1 -- "No" --> L2
+    L2 -- "Sí" --> HIT_L2
+    L2 -- "No" --> L3
+    L3 -- "Sí" --> HIT_L3
+    L3 -- "No" --> RAM
+    RAM -- "Sí" --> HIT_RAM
+    RAM -- "No" --> DISK
+
+    style HIT_L1 fill:#90EE90
+    style HIT_L2 fill:#90EE90
+    style HIT_L3 fill:#FFD580
+    style HIT_RAM fill:#FFD580
+    style DISK fill:#FFB3B3
+```
+
+---
+
+## 45 · Cache-friendly vs Cache-hostile
+
+> **Patrón:** accesos secuenciales → prefetcher puede predecir → rápido.
+> Accesos aleatorios (punteros) → cache miss en cada acceso → lento.
+
+### Plantilla comparativa
+
+```mermaid
+flowchart LR
+    subgraph FRIENDLY["Cache-FRIENDLY"]
+        CF1["Arreglo\nsecuencial"]
+        CF2["Prefetcher\ncarga adelante"]
+        CF3["~1 ns\npor acceso"]
+        CF1 --> CF2 --> CF3
+    end
+
+    subgraph HOSTILE["Cache-HOSTILE"]
+        CH1["Punteros\ndispersos"]
+        CH2["Cache miss\ncada salto"]
+        CH3["~100 ns\npor acceso"]
+        CH1 --> CH2 --> CH3
+    end
+
+    style CF3 fill:#90EE90
+    style CH3 fill:#FFB3B3
+    style CF2 fill:#D3D3D3
+    style CH2 fill:#FFD580
+```
+
+### Ejemplo: Merge Sort vs Heap Sort
+
+```mermaid
+flowchart TD
+    subgraph MS["Merge Sort — cache friendly"]
+        MS1["Subarreglos contiguos"]
+        MS2["Acceso secuencial L→R"]
+        MS3["Prefetcher activo"]
+        MS4["~0.8s para n=10^7"]
+        MS1 --> MS2 --> MS3 --> MS4
+    end
+
+    subgraph HS["Heap Sort — cache hostile"]
+        HS1["sift-down salta\na posición 2i+1"]
+        HS2["Para i grande:\nsalto de n/2"]
+        HS3["Cache miss frecuente"]
+        HS4["~2.1s para n=10^7"]
+        HS1 --> HS2 --> HS3 --> HS4
+    end
+
+    style MS4 fill:#90EE90
+    style HS4 fill:#FFB3B3
+    style MS3 fill:#D3D3D3
+    style HS3 fill:#FFD580
+```
+
+---
+
+## 46 · Medir antes de optimizar — metodología
+
+> **Patrón:** baseline → profiler → cuello de botella → optimizar → medir.
+> Sin baseline no sabes si mejoraste. Sin profiler optimizas lo que no importa.
+
+### Plantilla
+
+```mermaid
+flowchart TD
+    A["1. Código correcto\n(tests pasan)"]
+    B["2. Baseline medible\n(tiempo, memoria)"]
+    C["3. Profiler bajo carga real\n(n realista, no n=100)"]
+    D["Cuello de botella identificado"]
+    E{"¿Es el algoritmo\no la localidad?"}
+    F["Cambiar algoritmo\n(Cap.01-18)"]
+    G["Mejorar localidad\n(Cap.19)"]
+    H["Medir de nuevo"]
+    I{"¿Mejora\nsuficiente?"}
+    J["Listo ✓"]
+
+    A --> B --> C --> D --> E
+    E -- "Algoritmo" --> F --> H
+    E -- "Localidad" --> G --> H
+    H --> I
+    I -- "No" --> C
+    I -- "Sí" --> J
+
+    style J fill:#90EE90
+    style D fill:#87CEEB
+    style E fill:#87CEEB
+    style I fill:#87CEEB
+    style F fill:#FFFACD
+    style G fill:#FFFACD
+```
+
